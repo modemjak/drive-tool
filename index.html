@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ex Machina · Drive</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0e0e0e;
+    --surface: #161616;
+    --surface2: #1f1f1f;
+    --border: #2a2a2a;
+    --border2: #3a3a3a;
+    --text: #e8e8e8;
+    --text2: #888;
+    --text3: #555;
+    --accent: #c8f04a;
+    --accent2: #a8d03a;
+    --danger: #ff5c5c;
+    --success: #4adf8a;
+    --mono: 'DM Mono', monospace;
+    --sans: 'DM Sans', sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 14px;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  header {
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    background: var(--bg);
+    z-index: 10;
+  }
+
+  .logo {
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--accent);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .logo span { color: var(--text3); }
+
+  #auth-status {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text3);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--text3);
+    display: inline-block;
+  }
+
+  .dot.connected { background: var(--success); box-shadow: 0 0 6px var(--success); }
+  .dot.error { background: var(--danger); }
+
+  main {
+    flex: 1;
+    max-width: 720px;
+    width: 100%;
+    margin: 0 auto;
+    padding: 32px 24px;
+  }
+
+  .connect-screen {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 60vh;
+    text-align: center;
+    gap: 24px;
+  }
+
+  .connect-screen h1 {
+    font-size: 28px;
+    font-weight: 300;
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+  }
+
+  .connect-screen h1 em {
+    font-style: normal;
+    color: var(--accent);
+  }
+
+  .connect-screen p {
+    color: var(--text2);
+    font-size: 14px;
+    max-width: 360px;
+    line-height: 1.6;
+  }
+
+  .btn-connect {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--accent);
+    color: #0e0e0e;
+    border: none;
+    border-radius: 6px;
+    padding: 12px 24px;
+    font-family: var(--sans);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.15s, transform 0.1s;
+    letter-spacing: 0.01em;
+  }
+
+  .btn-connect:hover { background: var(--accent2); transform: translateY(-1px); }
+  .btn-connect:active { transform: translateY(0); }
+
+  .config-note {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text3);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 12px 16px;
+    text-align: left;
+    max-width: 400px;
+    line-height: 1.8;
+  }
+
+  .config-note strong { color: var(--text2); }
+
+  .search-screen { display: none; flex-direction: column; gap: 20px; }
+
+  .search-bar {
+    display: flex;
+    gap: 10px;
+    position: sticky;
+    top: 73px;
+    background: var(--bg);
+    padding: 4px 0 16px;
+    z-index: 9;
+  }
+
+  .search-bar input {
+    flex: 1;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 10px 16px;
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+
+  .search-bar input:focus { border-color: var(--border2); }
+  .search-bar input::placeholder { color: var(--text3); }
+
+  .btn {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 10px 18px;
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 13px;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+    white-space: nowrap;
+  }
+
+  .btn:hover { border-color: var(--border2); background: var(--surface); }
+
+  .btn-accent {
+    background: var(--accent);
+    color: #0e0e0e;
+    border-color: var(--accent);
+    font-weight: 500;
+  }
+
+  .btn-accent:hover { background: var(--accent2); border-color: var(--accent2); }
+
+  .filters {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  .filter-btn {
+    font-family: var(--mono);
+    font-size: 11px;
+    padding: 5px 12px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text3);
+    cursor: pointer;
+    transition: all 0.15s;
+    letter-spacing: 0.04em;
+  }
+
+  .filter-btn:hover { border-color: var(--border2); color: var(--text2); }
+  .filter-btn.active { border-color: var(--accent); color: var(--accent); background: rgba(200,240,74,0.06); }
+
+  .results-header {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text3);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .file-list { display: flex; flex-direction: column; gap: 1px; }
+
+  .file-item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 12px 14px;
+    background: var(--surface);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.12s;
+    border: 1px solid transparent;
+  }
+
+  .file-item:hover { background: var(--surface2); border-color: var(--border); }
+
+  .file-type {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text3);
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 3px 7px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    flex-shrink: 0;
+    min-width: 46px;
+    text-align: center;
+  }
+
+  .file-type.doc { color: #7ab4f5; border-color: #7ab4f520; background: #7ab4f508; }
+  .file-type.sheet { color: #4adf8a; border-color: #4adf8a20; background: #4adf8a08; }
+  .file-type.slide { color: #ffb347; border-color: #ffb34720; background: #ffb34708; }
+  .file-type.pdf { color: #ff5c5c; border-color: #ff5c5c20; background: #ff5c5c08; }
+  .file-type.txt { color: var(--text2); }
+
+  .file-info { flex: 1; min-width: 0; }
+
+  .file-name {
+    font-size: 13px;
+    color: var(--text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-weight: 400;
+  }
+
+  .file-meta {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text3);
+    margin-top: 2px;
+  }
+
+  .file-send {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text3);
+    flex-shrink: 0;
+    transition: color 0.12s;
+  }
+
+  .file-item:hover .file-send { color: var(--accent); }
+
+  .status-bar {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--text3);
+    padding: 16px 0;
+    text-align: center;
+  }
+
+  .status-bar.loading { color: var(--text2); }
+  .status-bar.error { color: var(--danger); }
+  .status-bar.success { color: var(--success); }
+
+  .disconnect-btn {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text3);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    transition: color 0.12s;
+  }
+
+  .disconnect-btn:hover { color: var(--danger); }
+
+  .sending-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(14,14,14,0.85);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    backdrop-filter: blur(4px);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s;
+  }
+
+  .sending-overlay.visible { opacity: 1; pointer-events: all; }
+
+  .sending-card {
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    border-radius: 10px;
+    padding: 28px 36px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    align-items: center;
+  }
+
+  .sending-card .label {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--text2);
+    letter-spacing: 0.06em;
+  }
+
+  .sending-card .fname {
+    font-size: 15px;
+    color: var(--accent);
+    font-weight: 500;
+    max-width: 300px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  .spinner {
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--border2);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">EX MACHINA <span>/</span> DRIVE</div>
+  <div id="auth-status">
+    <span class="dot" id="status-dot"></span>
+    <span id="status-text">not connected</span>
+    <button class="disconnect-btn" id="disconnect-btn" style="display:none" onclick="disconnect()">disconnect</button>
+  </div>
+</header>
+
+<main>
+  <div class="connect-screen" id="connect-screen">
+    <h1>Your Drive,<br>inside <em>every conversation.</em></h1>
+    <p>Connect once. Search and send any file directly into your Claude conversations — Docs, Sheets, PDFs, anything.</p>
+    <button class="btn-connect" onclick="startAuth()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+      Connect Google Drive
+    </button>
+    <div class="config-note" id="config-note" style="display:none">
+      <strong>Setup required</strong><br>
+      Open this file and set your<br>
+      CLIENT_ID at the top of the script.
+    </div>
+  </div>
+
+  <div class="search-screen" id="search-screen">
+    <div class="search-bar">
+      <input type="text" id="search-input" placeholder="Search files..." onkeydown="if(event.key==='Enter') doSearch()" autofocus />
+      <button class="btn btn-accent" onclick="doSearch()">Search</button>
+      <button class="btn" onclick="loadRecent()">Recent</button>
+    </div>
+
+    <div class="filters" id="filters">
+      <button class="filter-btn active" data-type="all" onclick="setFilter(this,'all')">all</button>
+      <button class="filter-btn" data-type="doc" onclick="setFilter(this,'doc')">docs</button>
+      <button class="filter-btn" data-type="sheet" onclick="setFilter(this,'sheet')">sheets</button>
+      <button class="filter-btn" data-type="pdf" onclick="setFilter(this,'pdf')">pdf</button>
+      <button class="filter-btn" data-type="slide" onclick="setFilter(this,'slide')">slides</button>
+      <button class="filter-btn" data-type="txt" onclick="setFilter(this,'txt')">text</button>
+    </div>
+
+    <div id="status-bar" class="status-bar" style="display:none"></div>
+    <div class="results-header" id="results-header" style="display:none"></div>
+    <div class="file-list" id="file-list"></div>
+  </div>
+</main>
+
+<div class="sending-overlay" id="sending-overlay">
+  <div class="sending-card">
+    <div class="spinner"></div>
+    <div class="label">FETCHING & SENDING</div>
+    <div class="fname" id="sending-name"></div>
+  </div>
+</div>
+
+<script>
+  // ─── CONFIGURATION ────────────────────────────────────────────────
+  const CLIENT_ID = '719263177749-l06cvlghetq4h2uq06vpt79ol7rh90dv.apps.googleusercontent.com';
+  const REDIRECT_URI = window.location.origin + window.location.pathname;
+  const SCOPE = 'https://www.googleapis.com/auth/drive.readonly';
+  // ──────────────────────────────────────────────────────────────────
+
+  const MIME_MAP = {
+    'application/vnd.google-apps.document': { label: 'DOC', type: 'doc', export: 'text/plain' },
+    'application/vnd.google-apps.spreadsheet': { label: 'SHEET', type: 'sheet', export: 'text/csv' },
+    'application/vnd.google-apps.presentation': { label: 'SLIDE', type: 'slide', export: 'text/plain' },
+    'application/pdf': { label: 'PDF', type: 'pdf', export: null },
+    'text/plain': { label: 'TXT', type: 'txt', export: null },
+    'text/markdown': { label: 'MD', type: 'txt', export: null },
+  };
+
+  let accessToken = null;
+  let currentFilter = 'all';
+  let allFiles = [];
+
+  function init() {
+    if (!CLIENT_ID || CLIENT_ID === 'PASTE_YOUR_CLIENT_ID_HERE') {
+      document.getElementById('config-note').style.display = 'block';
+      return;
+    }
+    const stored = localStorage.getItem('em_drive_token');
+    const expiry = localStorage.getItem('em_drive_expiry');
+    if (stored && expiry && Date.now() < parseInt(expiry)) {
+      accessToken = stored;
+      showSearchScreen();
+      loadRecent();
+      return;
+    }
+    const hash = window.location.hash;
+    if (hash.includes('access_token')) {
+      const params = new URLSearchParams(hash.substring(1));
+      accessToken = params.get('access_token');
+      const expiresIn = parseInt(params.get('expires_in') || '3600');
+      localStorage.setItem('em_drive_token', accessToken);
+      localStorage.setItem('em_drive_expiry', Date.now() + expiresIn * 1000);
+      window.history.replaceState(null, '', window.location.pathname);
+      showSearchScreen();
+      loadRecent();
+    }
+  }
+
+  function startAuth() {
+    const url = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${CLIENT_ID}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&response_type=token&scope=${encodeURIComponent(SCOPE)}&prompt=consent`;
+    window.location.href = url;
+  }
+
+  function disconnect() {
+    localStorage.removeItem('em_drive_token');
+    localStorage.removeItem('em_drive_expiry');
+    accessToken = null;
+    document.getElementById('connect-screen').style.display = 'flex';
+    document.getElementById('search-screen').style.display = 'none';
+    setStatusDot('disconnected');
+  }
+
+  function showSearchScreen() {
+    document.getElementById('connect-screen').style.display = 'none';
+    document.getElementById('search-screen').style.display = 'flex';
+    document.getElementById('disconnect-btn').style.display = 'inline';
+    setStatusDot('connected');
+  }
+
+  function setStatusDot(state) {
+    const dot = document.getElementById('status-dot');
+    const txt = document.getElementById('status-text');
+    dot.className = 'dot';
+    if (state === 'connected') { dot.classList.add('connected'); txt.textContent = 'connected'; }
+    else if (state === 'error') { dot.classList.add('error'); txt.textContent = 'auth error'; }
+    else { txt.textContent = 'not connected'; }
+  }
+
+  function setFilter(el, type) {
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    el.classList.add('active');
+    currentFilter = type;
+    renderFiles(allFiles);
+  }
+
+  async function doSearch() {
+    const q = document.getElementById('search-input').value.trim();
+    if (!q) return;
+    showStatus('searching...', 'loading');
+    try {
+      const query = encodeURIComponent(`fullText contains '${q.replace(/'/g,"\\'")}' and trashed = false`);
+      const fields = encodeURIComponent('files(id,name,mimeType,modifiedTime)');
+      const res = await fetch(`https://www.googleapis.com/drive/v3/files?q=${query}&fields=${fields}&pageSize=30`, {
+        headers: { Authorization: `Bearer ${accessToken}` }
+      });
+      if (res.status === 401) { handleAuthError(); return; }
+      const data = await res.json();
+      allFiles = data.files || [];
+      hideStatus();
+      renderFiles(allFiles, `results for "${q}"`);
+    } catch(e) { showStatus('search failed — check connection', 'error'); }
+  }
+
+  async function loadRecent() {
+    showStatus('loading recent files...', 'loading');
+    try {
+      const fields = encodeURIComponent('files(id,name,mimeType,modifiedTime)');
+      const res = await fetch(`https://www.googleapis.com/drive/v3/files?fields=${fields}&pageSize=30&orderBy=modifiedTime+desc&q=${encodeURIComponent('trashed=false')}`, {
+        headers: { Authorization: `Bearer ${accessToken}` }
+      });
+      if (res.status === 401) { handleAuthError(); return; }
+      const data = await res.json();
+      allFiles = data.files || [];
+      hideStatus();
+      renderFiles(allFiles, 'recently modified');
+    } catch(e) { showStatus('could not load files', 'error'); }
+  }
+
+  function renderFiles(files, label) {
+    const filtered = currentFilter === 'all' ? files : files.filter(f => {
+      const info = MIME_MAP[f.mimeType];
+      return info && info.type === currentFilter;
+    });
+
+    const header = document.getElementById('results-header');
+    const list = document.getElementById('file-list');
+
+    if (label) {
+      header.style.display = 'block';
+      header.textContent = `${filtered.length} ${label}`;
+    }
+
+    if (filtered.length === 0) {
+      list.innerHTML = '<div class="status-bar">no files found</div>';
+      return;
+    }
+
+    list.innerHTML = filtered.map(f => {
+      const info = MIME_MAP[f.mimeType] || { label: 'FILE', type: 'other' };
+      const date = new Date(f.modifiedTime).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+      return `<div class="file-item" onclick="sendFile('${f.id}','${f.name.replace(/'/g,"\\'").replace(/"/g,'&quot;')}','${f.mimeType}')">
+        <div class="file-type ${info.type}">${info.label}</div>
+        <div class="file-info">
+          <div class="file-name">${f.name}</div>
+          <div class="file-meta">${date}</div>
+        </div>
+        <div class="file-send">send to chat →</div>
+      </div>`;
+    }).join('');
+  }
+
+  async function sendFile(fileId, fileName, mimeType) {
+    showSending(fileName);
+    try {
+      let content = '';
+      const info = MIME_MAP[mimeType];
+
+      if (info && info.export) {
+        const res = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}/export?mimeType=${encodeURIComponent(info.export)}`, {
+          headers: { Authorization: `Bearer ${accessToken}` }
+        });
+        if (res.status === 401) { handleAuthError(); hideSending(); return; }
+        content = await res.text();
+      } else if (mimeType === 'application/pdf') {
+        const res = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`, {
+          headers: { Authorization: `Bearer ${accessToken}` }
+        });
+        if (res.status === 401) { handleAuthError(); hideSending(); return; }
+        const buffer = await res.arrayBuffer();
+        content = await extractPdfText(buffer);
+      } else {
+        const res = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`, {
+          headers: { Authorization: `Bearer ${accessToken}` }
+        });
+        if (res.status === 401) { handleAuthError(); hideSending(); return; }
+        content = await res.text();
+      }
+
+      if (!content || content.trim().length < 5) {
+        hideSending();
+        showStatus('file appears empty or unreadable', 'error');
+        return;
+      }
+
+      const MAX = 14000;
+      const truncated = content.length > MAX ? content.substring(0, MAX) + '\n\n[content truncated]' : content;
+      hideSending();
+
+      if (typeof sendPrompt === 'function') {
+        sendPrompt(`Here is the content of "${fileName}" from my Google Drive:\n\n${truncated}`);
+      } else {
+        const textarea = document.createElement('textarea');
+        textarea.value = `Here is the content of "${fileName}" from my Google Drive:\n\n${truncated}`;
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+        showStatus('copied to clipboard — paste into Claude', 'success');
+      }
+    } catch(e) {
+      hideSending();
+      showStatus('could not fetch file: ' + e.message, 'error');
+    }
+  }
+
+  async function extractPdfText(buffer) {
+    try {
+      await loadScript('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js');
+      pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+      const pdf = await pdfjsLib.getDocument({ data: buffer }).promise;
+      let text = '';
+      const maxPages = Math.min(pdf.numPages, 40);
+      for (let i = 1; i <= maxPages; i++) {
+        const page = await pdf.getPage(i);
+        const content = await page.getTextContent();
+        text += content.items.map(s => s.str).join(' ') + '\n\n';
+      }
+      return text.trim();
+    } catch(e) {
+      return '[PDF text extraction failed — file may be scanned or image-based]';
+    }
+  }
+
+  function loadScript(src) {
+    return new Promise((res, rej) => {
+      if (document.querySelector(`script[src="${src}"]`)) { res(); return; }
+      const s = document.createElement('script');
+      s.src = src;
+      s.onload = res;
+      s.onerror = rej;
+      document.head.appendChild(s);
+    });
+  }
+
+  function handleAuthError() {
+    localStorage.removeItem('em_drive_token');
+    localStorage.removeItem('em_drive_expiry');
+    accessToken = null;
+    setStatusDot('error');
+    document.getElementById('connect-screen').style.display = 'flex';
+    document.getElementById('search-screen').style.display = 'none';
+    document.getElementById('disconnect-btn').style.display = 'none';
+  }
+
+  function showStatus(msg, type) {
+    const el = document.getElementById('status-bar');
+    el.style.display = 'block';
+    el.className = 'status-bar ' + (type || '');
+    el.textContent = msg;
+  }
+
+  function hideStatus() {
+    document.getElementById('status-bar').style.display = 'none';
+  }
+
+  function showSending(name) {
+    document.getElementById('sending-name').textContent = name;
+    document.getElementById('sending-overlay').classList.add('visible');
+  }
+
+  function hideSending() {
+    document.getElementById('sending-overlay').classList.remove('visible');
+  }
+
+  init();
+</script>
+</body>
+</html>
